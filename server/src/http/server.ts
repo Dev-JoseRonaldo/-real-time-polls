@@ -1,6 +1,7 @@
 import fastify from 'fastify'
 import cookie from '@fastify/cookie'
 import websocket from '@fastify/websocket'
+import cors from '@fastify/cors'
 import { createPoll } from './routes/create-poll'
 import { getPoll } from './routes/get-poll'
 import { voteOnPoll } from './routes/vote-on-poll'
@@ -14,6 +15,7 @@ app.register(cookie, {
 })
 
 app.register(websocket)
+app.register(cors)
 
 app.register(createPoll)
 app.register(getPoll)
