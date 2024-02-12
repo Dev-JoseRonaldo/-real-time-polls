@@ -1,23 +1,43 @@
 "use client"
 
-import { Rank } from '@/components/Rank';
 import { WsConnection } from '@/components/WsConnection';
-import React, { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import axios from 'axios';
 
 export default function Home() {
-    const [connecting, setConnecting] = React.useState(true);
-    const [status, setStatus] = React.useState('');
-    const [messages, setMessages] = React.useState([]);
-    const [channel, setChannel] = React.useState(null)
+    const [connecting, setConnecting] = useState(true);
+    const [status, setStatus] = useState('');
+    const [channel, setChannel] = useState(null)
 
-    const displayMessage = React.useCallback(({ data } : never) => {
-      setMessages(prevState => [...prevState, data]);
-      console.log('mess: ' + messages)
-    }, [setMessages]);
+    const [poll, setPoll] = useState();
 
-    const openChannel = React.useCallback((inChannel: any) => {
+    const displayMessage = useCallback(( data  : never) => {
+      const newPoll = poll?.options.map((option: any) => {
+        if (option.id === data?.pollOptionId && option.score !== data.votes ) {
+          return { ...option, score: data.votes }
+        }
+        return option
+      })
+      setPoll(newPoll)
+    }, [setPoll]);
+
+    const openChannel = useCallback((inChannel: any) => {
       setChannel(() => { return inChannel })
     }, [setChannel]);
+
+    const handleFetch = async () => {
+      try {
+        const response = await axios.get('http://localhost:3333/polls/1cab2ea9-daa5-47f0-9296-f49b50179fa8')
+        const data = response.data.poll
+        setPoll(data)
+      } catch (error) {
+        console.error(error)
+      }
+    }
+
+    useEffect(() => {
+      handleFetch()
+    }, [poll])
 
   return (
     <div>
@@ -30,7 +50,18 @@ export default function Home() {
         onError={(error: any) => { setConnecting(true); setStatus(error.message) }}
       />
 
-      <Rank items={messages[0]?.votes}/>
+      <div key={poll?.id}>
+        {poll?.id}
+        {poll?.title}
+
+        {poll?.options?.map((option: any) => (
+          <div key={option.id}>
+            {option.title} -
+            {option.score}
+          </div>
+        ))}
+
+      </div>
     </div>
   );
 }

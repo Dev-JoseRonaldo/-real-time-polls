@@ -14,16 +14,10 @@ export function WsConnection(props: any) {
       })
     };
 
-    ws.onmessage = (event) => {
-      console.log('WebSocket message received:', event.data);
+    ws.onmessage = (event) => {  
       try {
-        const json = JSON.parse(event.data);
-        switch (json.type) {
-          case 'accepted':
-          case 'message':
-            props.onMessage(json)
-            break;
-        }
+        const converted = JSON.parse(event.data)
+        props.onMessage(converted)
       } catch (e) {
         console.error('Invalid JSON: ', event.data);
       }
